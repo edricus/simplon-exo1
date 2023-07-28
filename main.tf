@@ -84,7 +84,7 @@ resource "azurerm_lb" "lb_interne" {
 
   frontend_ip_configuration {
     name                 = "lb_interne_frontend"
-    subnet_id = azurerm_subnet.subnet-3
+    subnet_id = azurerm_subnet.subnet-3.id
   }
 
   tags = {
@@ -93,18 +93,18 @@ resource "azurerm_lb" "lb_interne" {
   }
 }
 
-resource "azurerm_lb_backend_address_pool" "lb_backend" {
+resource "azurerm_lb_backend_address_pool" "lb_interne_backend" {
   loadbalancer_id = azurerm_lb.lb_interne.id
   name            = "BackEndAddressPool"
 }
 
 
-resource "azurerm_lb_rule" "lbrule" {
+resource "azurerm_lb_rule" "lb_internerule" {
   loadbalancer_id                = azurerm_lb.lb_interne.id
   name                           = "LBRule"
   protocol                       = "Tcp"
   frontend_port                  = 80
   backend_port                   = 80
   frontend_ip_configuration_name = "lb_interne_frontend"
-  backend_address_pool_ids = [azurerm_lb_backend_address_pool.lb_backend.id]
+  backend_address_pool_ids = [azurerm_lb_backend_address_pool.lb_interne_backend.id]
 }
