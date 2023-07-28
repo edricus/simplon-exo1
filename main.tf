@@ -62,9 +62,18 @@ resource "azurerm_lb" "publiclb" {
     public_ip_address_id = azurerm_public_ip.publiclb-ip.id
   }
 }
-
 resource "azurerm_lb_backend_address_pool" "publiclb-backend" {
 loadbalancer_id = azurerm_lb.publiclb.id
 name            = "publiclb-backend"
+}
+resource "azurerm_lb_nat_pool" "publiclb-nat-pool" {
+  resource_group_name = var.rg
+  loadbalancer_id     = azurerm_lb.publiclb.id
+  name                = "publiclb-nat-pool"
+  protocol            = "Tcp"
+  frontend_port_start = 9000
+  frontend_port_end   = 9002
+  backend_port        = 80
+  frontend_ip_configuration_name = "publiclb-ip-association"
 }
 
