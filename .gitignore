@@ -1,5 +1,13 @@
-.terraform
-.terraform.lock.hcl
+#ignorer les lock files terraform
+*.lock.hcl
+
+# Local .terraform directories
+**/.terraform/*
+
+#ignorer terraform states
 *.tfstate
-*.tfstate.backup
-*.terraform.tfstate.lock.info
+*.tfstate.*
+
+#ignorer les fichier .tfvars
+*.tfvars
+*.tfvars.*
