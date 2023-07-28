@@ -45,6 +45,37 @@ resource "azurerm_subnet" "subnet-4" {
   virtual_network_name = azurerm_virtual_network.vnet-1.name
   address_prefixes     = ["10.0.0.48/28"]
 }
+resource "azurerm_public_ip" "publiclb-ip" {
+  name                = "publiclb-ip"
+  resource_group_name = var.rg
+  location            = var.location
+  allocation_method   = "Static"
+}
+
+resource "azurerm_lb" "publiclb" {
+  name                = "publiclb"
+  resource_group_name = var.rg
+  location            = var.location
+
+  frontend_ip_configuration {
+    name                 = "publiclb-ip-association"
+    public_ip_address_id = azurerm_public_ip.publiclb-ip.id
+  }
+}
+resource "azurerm_lb_backend_address_pool" "publiclb-backend" {
+loadbalancer_id = azurerm_lb.publiclb.id
+name            = "publiclb-backend"
+}
+resource "azurerm_lb_nat_pool" "publiclb-nat-pool" {
+  resource_group_name = var.rg
+  loadbalancer_id     = azurerm_lb.publiclb.id
+  name                = "publiclb-nat-pool"
+  protocol            = "Tcp"
+  frontend_port_start = 9000
+  frontend_port_end   = 9002
+  backend_port        = 80
+  frontend_ip_configuration_name = "publiclb-ip-association"
+}
 
 resource "azurerm_lb" "lb_interne" {
   name                = "lb_interne"
