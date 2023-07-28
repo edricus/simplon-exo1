@@ -48,8 +48,8 @@ resource "azurerm_subnet" "subnet-4" {
 
 resource "azurerm_lb" "lb_interne" {
   name                = "lb_interne"
-  location            = var.rg_location
-  resource_group_name = var.rg_name
+  location            = var.location
+  resource_group_name = var.rg
 
   frontend_ip_configuration {
     name                 = "lb_interne_frontend"
@@ -60,4 +60,20 @@ resource "azurerm_lb" "lb_interne" {
     Brief = var.brief_tag
     Owner = "Jess"
   }
+}
+
+resource "azurerm_lb_backend_address_pool" "lb_backend" {
+  loadbalancer_id = azurerm_lb.lb_interne.id
+  name            = "BackEndAddressPool"
+}
+
+
+resource "azurerm_lb_rule" "lbrule" {
+  loadbalancer_id                = azurerm_lb.lb_interne.id
+  name                           = "LBRule"
+  protocol                       = "Tcp"
+  frontend_port                  = 80
+  backend_port                   = 80
+  frontend_ip_configuration_name = "lb_interne_frontend"
+  backend_address_pool_ids = [azurerm_lb_backend_address_pool.lb_backend.id]
 }
