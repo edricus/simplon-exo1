@@ -46,3 +46,18 @@ resource "azurerm_subnet" "subnet-4" {
   address_prefixes     = ["10.0.0.48/28"]
 }
 
+resource "azurerm_lb" "lb_interne" {
+  name                = "lb_interne"
+  location            = var.rg_location
+  resource_group_name = var.rg_name
+
+  frontend_ip_configuration {
+    name                 = "lb_interne_frontend"
+    subnet_id = azurerm_subnet.subnet-3
+  }
+
+  tags = {
+    Brief = var.brief_tag
+    Owner = "Jess"
+  }
+}

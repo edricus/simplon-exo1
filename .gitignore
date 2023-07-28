@@ -10,4 +10,4 @@
 
 #ignorer les fichier .tfvars
 *.tfvars
-*.tfvars.json
+*.tfvars.*

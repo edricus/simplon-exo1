@@ -16,3 +16,8 @@ variable "ssh_key" {
   type = string
   description = "Clé SSH à donner à la VM"
 }
+
+variable "brief_tag"{
+  type = string
+  description = "Tag correspondant au brief"
+}
