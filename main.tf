@@ -53,7 +53,7 @@ resource "azurerm_lb" "lb_interne" {
 
   frontend_ip_configuration {
     name                 = "lb_interne_frontend"
-    subnet_id = azurerm_subnet.subnet-3
+    subnet_id = azurerm_subnet.subnet-3.id
   }
 
   tags = {
