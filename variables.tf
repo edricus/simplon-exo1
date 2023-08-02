@@ -21,3 +21,8 @@ variable "brief_tag"{
   type = string
   description = "Tag correspondant au brief"
 }
+
+variable "nb_srv"{
+  type = number
+  description = "Nb de serveurs dans notre sous-réseau de couche web"
+}
