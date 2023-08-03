@@ -26,3 +26,13 @@ variable "nb_srv"{
   type = number
   description = "Nb de serveurs dans notre sous-réseau de couche web"
 }
+
+variable "img_name" {
+  type = string
+  ddescription = "nom de l'image packer pour les serveurs web"  
+}
+
+variable "img_rg" {
+  type = string
+  description = "Resource group où trouver l'image packer"
+}

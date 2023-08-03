@@ -13,8 +13,8 @@ provider "azurerm" {
 
 # Je récupère une image packer d'un serveur nginx lancé, avec une page personnalisée
 data "azurerm_image" "img" {
-    name = "Debian4TechnoCorp"
-    resource_group_name = "Jess4TechnoCorp"
+    name = var.img_name
+    resource_group_name = var.img_rg
 }
 
 resource "azurerm_virtual_network" "vnet-1" {
@@ -222,4 +222,93 @@ resource "azurerm_lb_rule" "lb_internerule" {
   backend_port                   = 443
   frontend_ip_configuration_name = "lb_interne_frontend"
   backend_address_pool_ids = [azurerm_lb_backend_address_pool.lb_interne_backend.id]
+}
+
+# On crée les VMs des Base de donnée de la couche métier
+resource "azurerm_network_security_group" "db-nsg" {
+  name                = "db-nsg"
+  location            = var.location
+  resource_group_name = var.rg
+
+  security_rule {
+    name                       = "AllowHTTPS"
+    priority                   = 100
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_range     = "443"
+    source_address_prefix      = "*"
+    destination_address_prefix = "*"
+  }
+
+  security_rule {
+    name                       = "AllowSSH"
+    priority                   = 1000
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_range     = "22"
+    source_address_prefix      = "*"
+    destination_address_prefix = "*"
+  }
+
+  tags = {
+    Brief = var.brief_tag
+    Owner = "Jess"
+  }
+}
+#On crée les NICs des serveurs de la couche métier
+resource "azurerm_network_interface" "nic_db" {
+  count = var.nb_srv
+  name                = "db${count.index}-nic"
+  location            = var.location
+  resource_group_name = var.rg
+
+  ip_configuration {
+    name                          = "db-config"
+    subnet_id                     = azurerm_subnet.subnet-4.id
+    private_ip_address_allocation = "Dynamic"
+  }
+  tags = {
+    Brief = var.brief_tag
+    Owner = "Jess"
+  }
+}
+
+#On associe les NICs au NSG
+resource "azurerm_network_interface_security_group_association" "nic_db" {
+  count                     = var.nb_srv
+  network_interface_id      = element(azurerm_network_interface.nic_db.*.id, count.index)
+  network_security_group_id = azurerm_network_security_group.db-nsg.id
+}
+
+#On associe ces NICs au backend address pool du lb privé
+resource "azurerm_network_interface_backend_address_pool_association" "nic_db" {
+  count = var.nb_srv
+  network_interface_id    = element(azurerm_network_interface.nic_db.*.id, count.index)
+  ip_configuration_name   = "db-config"
+  backend_address_pool_id = azurerm_lb_backend_address_pool.lb_interne_backend.id
+}
+
+#On crée les serveurs de la couche métier
+resource "azurerm_linux_virtual_machine" "DBServers" {
+  count               = var.nb_srv
+  name                = "db${count.index}"
+  resource_group_name = var.rg
+  location            = var.location
+  size                =var.vm_size
+  admin_username      = "adminDB${count.index}"
+  admin_ssh_key {
+    username = "adminDB${count.index}"
+    public_key = file("${var.ssh_key}.pub")
+  }
+  network_interface_ids = [element(azurerm_network_interface.nic_db.*.id, count.index),]
+  os_disk {
+    name = "db${count.index}-OSdisk"
+    caching = "ReadWrite"
+    storage_account_type = "Standard_LRS"
+  }
+  source_image_id     = data.azurerm_image.img.id
 }
